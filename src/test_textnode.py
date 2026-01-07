@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, TextType, text_node_to_html_node
+from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
@@ -29,6 +29,66 @@ class TestTextNode(unittest.TestCase):
         html_node = text_node_to_html_node(node)
         self.assertEqual(html_node.tag, 'a')
         self.assertEqual(html_node.props['href'], "en.wikipedia.org")
+
+    def test_split_bold(self):
+        node = TextNode("This is some **bolded** text", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertEqual(new_nodes, [
+            TextNode("This is some ", TextType.TEXT),
+            TextNode("bolded", TextType.BOLD),
+            TextNode(" text", TextType.TEXT)
+        ])
+    
+    def test_split_code(self):
+        node = TextNode("This is text with a `code block` word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+        self.assertEqual(new_nodes, [
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" word", TextType.TEXT)
+        ])
+    
+    def test_split_bold_and_italic(self):
+        node = TextNode("This is some **bolded** and some _italic_ text", TextType.TEXT)
+        mid_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        new_nodes = split_nodes_delimiter(mid_nodes, "_", TextType.ITALIC)
+        self.assertEqual(new_nodes, [
+            TextNode("This is some ", TextType.TEXT),
+            TextNode("bolded", TextType.BOLD),
+            TextNode(" and some ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" text", TextType.TEXT)
+        ])
+
+    def test_already_special_text(self):
+        node = TextNode("This text is already bolded", TextType.BOLD)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertEqual(new_nodes, [
+            TextNode("This text is already bolded", TextType.BOLD)
+        ])
+    
+    def test_split_bolded_italic(self):
+        node = TextNode("This is some **bolded _and italic_ text**, eventually", TextType.TEXT)
+        mid_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        new_nodes = split_nodes_delimiter(mid_nodes, "_", TextType.ITALIC)
+        self.assertEqual(new_nodes, [
+            TextNode("This is some ", TextType.TEXT),
+            TextNode("bolded _and italic_ text", TextType.BOLD),
+            #TextNode("bolded ", TextType.BOLD),
+            #TextNode("and italic", (TextType.BOLD, TextType.ITALIC)),
+            #TextNode(" text", TextType.BOLD),
+            TextNode(", eventually", TextType.TEXT)
+        ])
+    
+    def test_unbalanced(self):
+        node = TextNode("This text is **invalid markdown", TextType.TEXT)
+        with self.assertRaises(Exception):
+            new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+
+    def test_no_change(self):
+        node = TextNode("This text has no special syntax", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertEqual(new_nodes, [node])
 
 if __name__ == "__main__":
     unittest.main()
