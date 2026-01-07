@@ -1,6 +1,14 @@
-from textnode import TextType, TextNode
+import os, shutil
 
-node = TextNode("helo", TextType.BOLD)
-print(node)
-link = TextNode("boots", TextType.LINK, "boot.dev")
-print(link)
+from copy_static import copy_static
+from generate_page import generate_page
+
+def main():
+    if os.path.exists("public"):
+        shutil.rmtree("public")
+    copy_static("")
+    generate_page("content/index.md", "template.html", "public/index.html")
+
+
+if __name__ == "__main__":
+    main()

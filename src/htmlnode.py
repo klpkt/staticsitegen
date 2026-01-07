@@ -79,7 +79,7 @@ def is_code(block):
 
 def is_quote(block):
     for line in block.split('\n'):
-        if not line.startswith("> "):
+        if not line.startswith("> ") and not line == ">":
             return False
     return True
 

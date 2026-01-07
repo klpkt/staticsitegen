@@ -27,9 +27,11 @@ def block_to_html_node(block):
             content = block[4:-3]
             node.children = [text_node_to_html_node(TextNode(content, TextType.CODE))]
         case BlockType.QUOTE:
-            content = block.split('\n')
-            for line in content:
-                node.children.append(text_to_children(line[2:]))
+            content = []
+            for line in block.split('\n'):
+                if line != ">":
+                    content.append(line[2:])
+            node.children = text_to_children(' '.join(content))
         case BlockType.UL:
             content = block.split('\n')
             for line in content:
