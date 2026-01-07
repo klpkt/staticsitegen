@@ -1,3 +1,13 @@
+from enum import Enum
+
+class BlockType(Enum):
+    PARAGRAPH = "p"
+    HEADING = "h"
+    CODE = "code"
+    QUOTE = "blockquote"
+    UL = "ul"
+    OL = "OL"
+
 class HTMLNode:
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag
@@ -47,3 +57,53 @@ class ParentNode(HTMLNode):
             html_list.append(child.to_html())
         html_list.append(f"</{self.tag}>")
         return ''.join(html_list)
+
+def markdown_to_blocks(markdown):
+    blocks = map(lambda x: x.strip(), markdown.split('\n\n'))
+    return list(filter(lambda x: len(x)>0, blocks))
+
+def is_heading(block):
+    if '\n' in block:
+        return False
+    if block[0] != '#':
+        return False
+    for i in range(1, 7):
+        if block[i] == ' ':
+            return True
+        if block[i] != '#':
+            return False
+    return False
+
+def is_code(block):
+    return block[:4] == "```\n" and block[-3:] == "```"
+
+def is_quote(block):
+    for line in block.split('\n'):
+        if not line.startswith("> "):
+            return False
+    return True
+
+def is_ul(block):
+    for line in block.split('\n'):
+        if not line.startswith("- "):
+            return False
+    return True
+
+def is_ol(block):
+    for i, line in enumerate(block.split('\n')):
+        if not line.startswith(f"{i+1}. "):
+            return False
+    return True
+
+def block_to_block_type(block):
+    if is_heading(block):
+        return BlockType.HEADING
+    if is_code(block):
+        return BlockType.CODE
+    if is_quote(block):
+        return BlockType.QUOTE
+    if is_ul(block):
+        return BlockType.UL
+    if is_ol(block):
+        return BlockType.OL
+    return BlockType.PARAGRAPH
