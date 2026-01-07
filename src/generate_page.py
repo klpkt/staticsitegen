@@ -15,3 +15,17 @@ def generate_page(from_path, template_path, dest_path):
     os.makedirs(dirs, exist_ok=True)
     with open(dest_path, 'w') as f:
         f.write(final_html)
+
+def generate_pages_recursive(content_path, template_path):
+    # first call, content_path is ""
+    if os.path.isfile(f"content/{content_path}"):
+        print(f"Copying content{content_path} to public{content_path}")
+        md_file = f"content{content_path}"
+        html_file = f"public{content_path[:-3]}.html"
+        generate_page(md_file, template_path, html_file)
+    else:
+        if not os.path.exists(f"public/{content_path}"):
+            print(f"Creating folder public{content_path}")
+            os.mkdir(f"public/{content_path}")
+        for sub_path in os.listdir(f"content/{content_path}"):
+            generate_pages_recursive(f"{content_path}/{sub_path}", template_path)
