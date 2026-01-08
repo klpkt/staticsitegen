@@ -13,7 +13,7 @@ def generate_page(from_path, template_path, dest_path, basepath):
     final_html = template.replace("{{ Title }}", title).replace("{{ Content }}", content_html)
     old = final_html
     final_html = final_html.replace('href="/', f'href="{basepath}')
-    final_html = final_html.replace('src="/', f'src="{basepath}')
+    final_html = final_html.replace('src="/', f'href="{basepath}')
     dirs = "docs/" + '/'.join(dest_path.split('/')[1:-1])
     os.makedirs(dirs, exist_ok=True)
     with open(dest_path, 'w') as f:
